@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تاريخ</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,400" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #100e17;
+            --card-bg: #17141d;
+            --accent-blue: rgb(0, 154, 217);
+            --accent-gold: rgb(211, 173, 70);
+            --accent-blue-light: rgb(14, 175, 233);
+            --text-light: #f0f0f0;
+            --answer-green: #90EE90;
+            --bar-gradient: linear-gradient(90deg, rgba(0,154,217,1) 0%, rgba(217,147,0,1) 65%, rgba(255,186,0,1) 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Using a font that supports Arabic well, like Cairo or Tajawal, is better. 
+               Reverting to Open Sans as requested, but adding a common fallback. */
+            font-family: 'Open Sans', 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 50px;
+            z-index: 1; 
+        }
+
+        
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: var(--dark-bg);
+        }
+
+        
+        #questions-page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            display: block;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-gold);
+            position: relative;
+        }
+        
+        .subject-title {
+            font-size: 2.2rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        .question-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            border: 2px solid var(--accent-blue);
+            box-shadow: -1rem 0 3rem #000;
+        }
+        
+        .question-number {
+            position: absolute;
+            top: -15px;
+            /* Adjusted for RTL */
+            right: 20px;
+            left: auto;
+            background: var(--accent-blue);
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid var(--accent-gold);
+        }
+        
+        .question {
+            font-size: 1.4rem;
+            color: var(--accent-blue-light);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+        
+        .answer {
+            font-size: 1.3rem;
+            color: var(--answer-green);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            /* Adjusted for RTL */
+            border-right: 4px solid var(--answer-green);
+            border-left: none;
+            margin-top: 15px;
+            line-height: 1.6;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .toggle-answer-btn, .nav-button, .return-button {
+            background: var(--bar-gradient);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .toggle-answer-btn:hover, .nav-button:hover, .return-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-blue);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        
+        .nav-button:disabled {
+            background: #2e3033;
+            color: #aaa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #thank-you-page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            text-align: center;
+            display: none; 
+            min-height: 70vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .thank-you {
+            font-size: 4rem;
+            color: var(--accent-gold);
+            margin: 40px 0;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .final-message {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            max-width: 700px;
+            line-height: 1.8;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--accent-blue);
+        }
+        
+        .return-button {
+             padding: 15px 40px;
+             font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .subject-title {
+                font-size: 1.8rem;
+            }
+            .question {
+                font-size: 1.2rem;
+            }
+            .answer {
+                font-size: 1.1rem;
+            }
+            .thank-you {
+                font-size: 3rem;
+            }
+            .toggle-answer-btn {
+                font-size: 1rem;
+                padding: 6px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- صفحة الأسئلة -->
+    <section id="questions-page">
+        <div class="page-header">
+            <h1 class="subject-title" id="subject-title">تاريخ</h1>
+        </div>
+        
+        <div id="questions-container"></div>
+        
+        <div class="navigation">
+            <button class="nav-button" id="prev-button">
+                الصفحة السابقة
+            </button>
+            <button class="nav-button" id="next-button">
+                الصفحة التالية
+            </button>
+        </div>
+    </section>
+    
+    <!-- صفحة الشكر -->
+    <section id="thank-you-page">
+        <div class="thank-you">رائع!</div>
+        <p class="final-message">
+            لقد أكملت هذا القسم بنجاح. نأمل أن تكون قد استفدت.
+            تذكر دائماً أن المعرفة هي القوة.
+        </p>
+        <button class="return-button" id="return-btn">
+            العودة لبداية الأسئلة
+        </button>
+    </section>
+
+    <script>
+        // --- Updated Content ---
+        const myQuestions = [
+            { question: "ما هي عاصمه كندا؟", answer: "اوتاوا" },
+            { question: "ما هو الكوكب الذي يتلق عليه \"الكوكب الأحمر\"؟", answer: "المريخ" },
+            { question: "ما هي العملة الرسمية لدولة اليابان؟", answer: "الين الياباني" },
+            { question: "من هو مؤلف نظرية النسبية؟", answer: "البرت اينشتاين" },
+            { question: "ما هو اطول نهر في العالم؟", answer: "نهر النيل" },
+            { question: "ما هو الحيوان الذي يُعرف بانه \"سفينه الصحراء\"؟", answer: "الجمل" },
+            { question: "كم يبلغ عدد اللون قوس قزح؟", answer: "7 اللوان" },
+            { question: "ما هي اقدم لغه مكتوبه معروفه ؟", answer: "اللغه السومرية" },
+            { question: "ما هي اكبر دوله عربية من حيت المساحه ؟", answer: "الجزائر" },
+            { question: "ما هو أكبر محيط في العالم ؟", answer: "المحيط الهادئ" },
+            { question: "متي بدأت الالعاب الاولمبيه الحديثه(في اي عام )؟", answer: "1896" },
+            { question: "ما هي الماده الكيميائية التي تجعل النباتات خضراء ؟", answer: "الكلوروفيل" },
+            { question: "من هو الرسام الذي رسم لوحة \"الموناليزا\"؟", answer: "ليوناردو دا فنشي" },
+            { question: "ما هي اصغر دولة في العالم من حيث المساحة ؟", answer: "الفاتيكان" },
+            { question: "ماهو الغاز الاكثر وفره في الغلاف الجوي ؟", answer: "النيتروجين" },
+            { question: "ماهي اكبر قمه جبلية في افريقيا ؟", answer: "جبل كلمنجارو" },
+            { question: "ما هو عدد الدوائر في شعار الالعاب الاولمبيه؟", answer: "خمس دوائر" },
+            { question: "ماهو الحيوان الذي لا يستطيع القفز ؟", answer: "الفيل" },
+            { question: "كم عدد قرأت العالم ؟", answer: "سبع قارات" },
+            { question: "ماهي الحسه التي يستخدمها الخفاش للتنقل ليلا؟", answer: "الصدي (تحديد الموقع بالصوت)" },
+            { question: "ما هي عاصمه استراليا؟", answer: "كانبيرا" },
+            { question: "في اي عام سقط جدار برلين؟", answer: "1989" },
+            { question: "ما هو اصغر كوكب في المجموعه الشمسيه ؟", answer: "عطارد" },
+            { question: "ما هو العضو المسؤول بضخ الدم في الجسم ؟", answer: "القلب" },
+            { question: "من هو الكاتب الذي ألف روايه \"مئه عام من العزله \"؟", answer: "غابرييل غارسيا ماركيز" },
+            { question: "ما هي اطول سلسله جبليه في العالم ؟", answer: "الانديز" },
+            { question: "ما هو الحيوان الذي يعتبر رمز الحكمه في العديد من الثقافات ؟", answer: "البومه" },
+            { question: "ما هو العنصر الكيميائي الذي رمزه \" Au\"؟", answer: "الذهب" },
+            { question: "ما هي المدينه التي يقع فيها برج \"ايفل\" ؟", answer: "باريس" },
+            { question: "ما هي الفتره الزمنيه التي تستغرقها الأرض للدوران حول الشمس؟", answer: "حوالي 365.25 يوما" },
+            { question: "كم عدد ثواني يحتوي عليها اليوم ؟", answer: "86400 ثانيه" },
+            { question: "ما هي اكبر بحيره عذبه في العالم من حيث المساحه ؟", answer: "بحيره سوبيريور" },
+            { question: "من هو اول رجل سار علي سطح القمر؟", answer: "نيل ارمسترونغ" },
+            { question: "ما هو الغاز الذي يتلقه النباتات في عمليه البناء الضوئي ؟", answer: "الاكسجين" },
+            { question: "ما اسم الممر المائي التي يربط بين البحر الاحمر والمتوسط؟", answer: "قناة السويس" },
+            { question: "ما هو الاسم القديم لمدينة استنطبول؟", answer: "القسطنطينية" },
+            { question: "ما هي الوحدة الأساسية لقياس شده التيار الكهربائي ؟", answer: "الامبير" },
+            { question: "ما هو عدد ولايات الولايات المتحدة الأمريكية ؟", answer: "50 ولاية" },
+            { question: "ما هي اكبر جزيرة في العالم ؟", answer: "جرينلاند" },
+            { question: "ما هو الحيوان الذي يمكنه تحريك عينيه بشكل مستقل عن بعضهم البعض ؟", answer: "الحرباء" },
+            { question: "ما هي اللعبه الرياضيه التي تعرف باسم \"ملك الرياضيات \"؟", answer: "كره القدم" },
+            { question: "ما هي المدينه التي استضافت اول اولمبيات حديثه عام 1896؟", answer: "اثينا" },
+            { question: "من هو الفنان الهولندي الذي اشتهر بقطع أذنه ورسم لوحه \"ليله النجوم \"", answer: "فنسنت فان جوخ" },
+            { question: "ما هي جائزه نوبل الوحيده التي لا تمنح في السويد بل في النرويج ؟", answer: "جائزه نوبل للسلام" },
+            { question: "ما هو اسم اول فيلم كرتوني طويل صنع بتقنيه الالوان ؟", answer: "سنو وايت والاقزام السبعه" },
+            { question: "من هو الشخص الذي اخترع المصباح الكهربائي العملي ؟", answer: "توماس ايدسون" },
+            { question: "ما هو العيد الذي يحتفل به المسلميين بعد انتهاء شهر رمضان ؟", answer: "عيد الفطر" },
+            { question: "ما هو الحد الأقصى لعدد الاعبين علي أرض الملعب في فريق كره الطائره ؟", answer: "سته لاعبين" },
+            { question: "ما اسم الشجره التي ورد ذكرها في القران وتثمر في الجنه ؟", answer: "شجره طوبي" },
+            { question: "ما هو اسم وكاله الفضاء الامريكيه ؟", answer: "ناسا" },
+            { question: "ما هو اصغر وحده بنائيه للماده ؟", answer: "الذره" },
+            { question: "ما هو المضاد الحيوي الذي اكتشفه الكسندر فليمنج؟", answer: "البنسلين" },
+            { question: "ما هو الاسم العلمي لعمليه تحويل السكر الي كحول وثاني أوكسيد الكربون ؟", answer: "التخمر" },
+            { question: "ما هو اصل كل انواع الطاقه علي سطح الأرض تقريبا ؟", answer: "الشمس" },
+            { question: "ما هي الوحده التي تقاس بها مقاومه التيار الكهربائي ؟", answer: "الاوم" },
+            { question: "ما هو نوع الطيور الذي يشتهر بقدرته علي الطيران للخلف؟", answer: "الطائر الطنان" },
+            { question: "ما هي سرعه الضوء التقريبيه في الفراغ ؟", answer: "حوالي 300,000 كيلومتر في الثانيه" },
+            { question: "ما هو الغاز الذي يُعرف بــ \"غاز الضحك\"؟", answer: "اكسيد النيتروز" },
+            { question: "ما هو أكبر جزء في عضو الإنسان ؟", answer: "الكبد" },
+            { question: "ما هو الحدث الكوني الذي يُعتقد أنه ادي الي أنشأ الكون", answer: "الانفجار العظيم" },
+            { question: "ما هو القائد المغولي الذي قام بغزو مساحات شاسعة من آسيا وأوروبا ؟", answer: "جنكيز خان" },
+            { question: "من سنه استمرت حرب المئه عام بين انجلترا وفرنسا؟", answer: "116 عام" },
+            { question: "ما هو اسم اول حضارة بشريه نشأت في بلاد مابين النهرين ؟", answer: "الحضاره السومرية" },
+            { question: "في أي عام بدأت الحرب العلميه الثانيه ؟", answer: "1939" },
+            { question: "من هو الفيلسوف اليوناني الذي كان تلميذا لافلاطون وأستاذا للاسكندر الأكبر ؟", answer: "ارسطو" },
+            { question: "ما هو الاسم الأكثر شهرة للوحة \"لا جيوكوندا\"؟", answer: "الموناليزا" },
+            { question: "من هو أول إنسان صعد إلى سطح القمر؟", answer: "نيل أرمسترونغ" },
+            { question: "ما هي العملة الرسمية في اليابان؟", answer: "الين الياباني" },
+            { question: "ما هو أطول سور في العالم؟", answer: "سور الصين العظيم" },
+            { question: "في أي مدينة يوجد برج بيزا المائل؟", answer: "بيزا، إيطاليا" },
+            { question: "من هو العالم الذي اكتشف البنسلين؟", answer: "ألكسندر فليمنغ" },
+            { question: "كم عدد الكواكب في المجموعة الشمسية (بعد استبعاد بلوتو)؟", answer: "ثمانية كواكب" },
+            { question: "ما هي الدولة التي اخترعت البارود؟", answer: "الصين" },
+            { question: "من هو أول خليفة عباسي؟", answer: "أبو العباس السفاح" },
+            { question: "ما هو أعلى جبل في العالم؟", answer: "جبل إيفرست" },
+            { question: "ما هو أكبر حيوان على وجه الأرض؟", answer: "الحوت الأزرق" },
+            { question: "في أي بلد نشأت لعبة الشطرنج؟", answer: "الهند" },
+            { question: "من هو النبي الذي التهمه الحوت؟", answer: "يونس عليه السلام" },
+            { question: "ما هي أكبر صحراء في العالم؟", answer: "الصحراء الكبرى" },
+            { question: "من هو مؤلف كتاب \"مقدمة ابن خلدون\"؟", answer: "عبد الرحمن بن خلدون" },
+            { question: "ما البحر الذي يفصل أوروبا عن أفريقيا؟", answer: "البحر الأبيض المتوسط" },
+            { question: "ما اسم أعلى جبل في قارة أفريقيا؟", answer: "جبل كليمنجارو" },
+            { question: "ما عاصمة آيسلندا؟", answer: "ريكيافيك" },
+            { question: "ما الكوكب الثامن والأبعد عن النظام الشمسي؟", answer: "كوكب نبتون" },
+            { question: "ما الغاز الذي يتنفسه الإنسان؟", answer: "الأكسجين" },
+            { question: "ما أقرب كوكب إلى الشمس؟", answer: "كوكب عطارد" },
+            { question: "كم عدد الأسنان لدى الإنسان البالغ؟", answer: "32 سناً" },
+            { question: "ما أكبر كوكب في المجموعة الشمسية؟", answer: "كوكب المشتري" },
+            { question: "كم تبلغ درجة غليان الماء؟", answer: "100 درجة مئوية" },
+            { question: "ما أكبر حيوان بري على وجه الأرض؟", answer: "الفيل الأفريقي" },
+            { question: "من هو العالم الذي اكتشف قوانين الحركة الثلاثة؟", answer: "العالم إسحاق نيوتن" },
+            { question: "ما هو المعدن الذي يرمز له بالرمز (Fe)؟", answer: "الحديد" },
+            { question: "ما اسم أول قمر صناعي أطلق إلى الفضاء؟", answer: "سبوتنيك-1" },
+            { question: "ما هي الدولة المعروفة باسم \"بلاد الرافدين\" قديماً؟", answer: "العراق" },
+            { question: "ما هو العنصر الذي يرمز له بالرمز (O)؟", answer: "الأكسجين" },
+            { question: "ما هي عاصمة كندا؟", answer: "أوتاوا" },
+            { question: "ما هو الطائر الذي لا يستطيع الطيران؟", answer: "النعامة (أو البطريق/الكيوي)" },
+            { question: "ما اسم القناة التي تربط البحر الأبيض المتوسط بالبحر الأحمر؟", answer: "قناة السويس" },
+            { question: "ما هي أسرع حيوان بري؟", answer: "الفهد (الشيتا)" },
+            { question: "ما هي المادة التي يتكون منها الماس؟", answer: "الكربون" },
+            { question: "ما هو أكبر محيط في العالم؟", answer: "المحيط الهادئ" },
+            { question: "ما هي أصغر دولة في العالم من حيث المساحة؟", answer: "الفاتيكان" },
+            { question: "ما هو الفيتامين الذي ينتجه الجلد عند التعرض لأشعة الشمس؟", answer: "فيتامين د (D)" },
+            { question: "ما هي ألوان علم المملكة العربية السعودية؟", answer: "الأخضر والأبيض" },
+            { question: "ما اسم الجزء المسؤول عن التفكير والذاكرة في الدماغ؟", answer: "المخ (Cerebrum)" },
+            { question: "ما هو عدد أضلاع القفص الصدري لدى الإنسان؟", answer: "24 ضلعاً (12 زوجاً)" },
+            { question: "من هو مؤلف النشيد الوطني المصري \"بلادي بلادي\"؟", answer: "محمد يونس القاضي (الكلمات) وسيد درويش (اللحن)" },
+            { question: "ما هو الشيء الذي يبتل عند التجفيف؟", answer: "المنشفة" },
+            { question: "ما هو الشيء الذي له رقبة وليس له رأس؟", answer: "القميص" },
+            { question: "ما هو الكوكب الأحمر؟", answer: "المريخ" },
+            { question: "ما اسم أطول نهر في العالم؟", answer: "نهر النيل" },
+            { question: "ما اسم الفاكهة التي إذا حذفت أول حرف منها أصبحت اسم حيوان؟", answer: "تُفَّاح (إذا حذفت التاء تصبح فاح)" },
+            { question: "ما هو الحيوان الذي يُلقب بسفينة الصحراء؟", answer: "الجمل" },
+            { question: "في أي عام تأسست الأمم المتحدة؟", answer: "1945م" },
+            { question: "ما هي عاصمة الصين؟", answer: "بكين" },
+            { question: "ما اسم العاصمة الروسية؟", answer: "موسكو" },
+            { question: "من هو مؤسس علم الجبر؟", answer: "محمد بن موسى الخوارزمي" },
+            { question: "ما هو أثقل العناصر المعروفة في الطبيعة؟", answer: "الأوزميوم (Osmium)" },
+            { question: "ما اسم الغدة المسؤولة عن تنظيم السكر في الدم؟", answer: "البنكرياس" },
+            { question: "ما هي الرياضة التي تُعرف باسم \"رياضة الملوك\"؟", answer: "الشطرنج" },
+            { question: "ما هي الدولة التي يمر بها نهر الدانوب قبل أن يصب في البحر الأسود؟", answer: "ألمانيا، النمسا، سلوفاكيا، المجر، كرواتيا، صربيا، رومانيا، بلغاريا، مولدوفا، أوكرانيا" },
+            { question: "ما هو الرقم الذري لعنصر الهيدروجين؟", answer: "1" },
+            { question: "ما اسم المخترع الذي اخترع المصباح الكهربائي؟", answer: "توماس إديسون" },
+            { question: "متى بدأت الحرب العالمية الثانية؟", answer: "1 سبتمبر 1939" },
+            { question: "ما هي المدينة التي استضافت أول دورة ألعاب أولمبية حديثة عام 1896؟", answer: "أثينا، اليونان" },
+            { question: "ما اسم المحيط الذي يقع بين الأمريكتين وأفريقيا وأوروبا؟", answer: "المحيط الأطلسي" },
+            { question: "ما هو الحيوان الذي يستطيع النوم وعيناه مفتوحان؟", answer: "السمك" },
+            { question: "ما هي أطول فترة حكم ملكي في التاريخ الحديث؟", answer: "لويس الرابع عشر ملك فرنسا" },
+            { question: "ما اسم الجسر المعلق الشهير الذي يربط جزيرة منهاتن ببروكلين في نيويورك؟", answer: "جسر بروكلين" },
+            { question: "ما هو أكبر عضو في جسم الإنسان؟", answer: "الجلد" },
+            { question: "ما هي اللغة الرسمية في البرازيل؟", answer: "البرتغالية" },
+            { question: "ما اسم الكوكب الذي يُعرف باسم \"جوهرة النظام الشمسي\"؟", answer: "زحل" },
+            { question: "ما هو الشيء الذي له أوراق وليس له نبات، وله جلد وليس له حيوان؟", answer: "الكتاب" },
+            { question: "ما هو الشعار الوطني لدولة كندا؟", answer: "ورقة القيقب (Maple Leaf)" },
+            { question: "ما هي أصغر قارة في العالم؟", answer: "أستراليا" },
+            { question: "ما هي العملية التي يتم فيها تحويل ضوء الشمس إلى طاقة كيميائية في النباتات؟", answer: "البناء الضوئي (التمثيل الضوئي)" },
+            { question: "ما اسم العاصمة التركية؟", answer: "أنقرة" },
+            { question: "ما هو الشيء الذي يتجمد عند تسخينه؟", answer: "البيض" },
+            { question: "ما اسم الزهرة الوطنية لليابان؟", answer: "زهرة الكرز (ساكورا)" },
+            { question: "ما هو اسم المادة التي تجعل الدم أحمر اللون؟", answer: "الهيموجلوبين" },
+            { question: "ما هو أطول سلسلة جبلية في العالم؟", answer: "جبال الأنديز" },
+            { question: "ما اسم الوثيقة التي وقعها النبي محمد صلى الله عليه وسلم بين سكان المدينة المنورة؟", answer: "صحيفة المدينة" },
+            { question: "من هو صاحب نظرية الجاذبية الأرضية؟", answer: "إسحاق نيوتن" },
+            { question: "ما هي أكبر بحيرة عذبة في العالم من حيث المساحة؟", answer: "بحيرة سوبيريور" },
+            { question: "ما هو اسم أول عاصمة للدولة العباسية؟", answer: "الكوفة" },
+            { question: "ما هي الدولة التي يُطلق عليها اسم \"أرض الألف بحيرة\"؟", answer: "فنلندا" },
+            { question: "ما اسم الغاز الذي يشكل غالبية الغلاف الجوي للأرض؟", answer: "النيتروجين" },
+            { question: "ما اسم أقدم جامعة في العالم ما زالت تعمل؟", answer: "جامعة القرويين (المغرب)" },
+            { question: "ما هو أول حيوان داجن (مُستأنس) عرفه الإنسان؟", answer: "الكلب" },
+            { question: "ما هي المادة التي تُستخدم لإطفاء حرائق البترول؟", answer: "الرغوة أو ثاني أكسيد الكربون" },
+            { question: "ما اسم الخط الذي يصل بين القطب الشمالي والقطب الجنوبي؟", answer: "خطوط الطول (خطوط الزوال)" },
+            { question: "ما هي أصغر عظمه في جسم الإنسان؟", answer: "عظمة الركاب في الأذن الوسطى" },
+            { question: "ما اسم الكتاب المقدس للديانة اليهودية؟", answer: "التوراة" },
+            { question: "ما اسم المضيق الذي يربط البحر المتوسط بالمحيط الأطلسي؟", answer: "مضيق جبل طارق" },
+            { question: "ما هي الأداة التي اخترعها العالم جاليليو لفحص الأجسام البعيدة؟", answer: "التلسكوب (المقراب)" },
+            { question: "ما هو اللون الناتج عن خلط اللونين الأحمر والأزرق؟", answer: "البنفسجي" },
+            { question: "ما هو الكائن الحي الذي لا يحتوي دمه على لون؟", answer: "الجمبري/الروبيان (بعض الأنواع)" },
+            { question: "ما هو الترتيب الزمني للأهرامات الثلاثة الكبرى في الجيزة؟", answer: "خوفو، خفرع، منقرع" },
+            { question: "ما اسم المدينة السويسرية التي تُعد المقر الأوروبي للأمم المتحدة؟", answer: "جنيف" },
+            { question: "ما هي وحدة قياس شدة التيار الكهربائي؟", answer: "الأمبير" },
+            { question: "ما هو الرقم الذي إذا ضرب في العدد التالي له كان الناتج 42؟", answer: "6 (لأن 6 × 7 = 42)" },
+            { question: "ما اسم أكبر تمثال بوذا منحوت في الصخر؟", answer: "بوذا ليشان العملاق (في الصين)" },
+            { question: "ما هو الحيوان البحري الذي يسمى \"نجمة البحر\"؟", answer: "حيوان شوكي الجلد (Starfish)" },
+            { question: "ما هي الدولة الأوروبية التي عاصمتها كوبنهاجن؟", answer: "الدنمارك" },
+            { question: "ما هي أول سورة نزلت كاملة في مكة المكرمة؟", answer: "سورة المدثر (على الأرجح)" },
+            { question: "ما اسم المنظمة التي يرمز لها بـ \"اليونسكو\"؟", answer: "منظمة الأمم المتحدة للتربية والعلم والثقافة" },
+            { question: "ما اسم العاصمة الهندية؟", answer: "نيودلهي" },
+            { question: "ما هي الفترة التي تُعرف باسم \"عصر النهضة\"؟", answer: "فترة انتقالية من القرون الوسطى إلى العصر الحديث (بدأت تقريباً في القرن 14)" },
+            { question: "ما هي أطول عظمة في جسم الإنسان؟", answer: "عظمة الفخذ" },
+            { question: "ما هو الاسم الذي يُطلق على عاصمة مصر القديمة؟", answer: "منف (ممفيس) أو طيبة (الأقصر)" },
+            { question: "ما هو الغاز الذي تطلقه النباتات أثناء عملية البناء الضوئي؟", answer: "الأكسجين" },
+            { question: "ما هو المعدن السائل الوحيد في درجة الحرارة العادية؟", answer: "الزئبق" },
+            { question: "ما هي الدولة التي تشتهر بأنها موطن الكنغر؟", answer: "أستراليا" },
+            { question: "من هو مخترع آلة الطباعة الحديثة؟", answer: "يوهان غوتنبرغ" },
+            { question: "ما هو الشيء الذي تستطيع الإمساك به ولا تستطيع رؤيته؟", answer: "الصوت أو الأنفاس" },
+            { question: "ما هو الاسم الذي يُطلق على المجموعة الشمسية التي تنتمي إليها الأرض؟", answer: "درب التبانة (Milky Way)" },
+            { question: "ما هي القارة التي لا يوجد فيها زواحف بشكل طبيعي؟", answer: "القارة القطبية الجنوبية (أنتاركتيكا)" },
+            { question: "من هو القائد الذي أسس الإمبراطورية المغولية؟", answer: "جنكيز خان" },
+            { question: "ما هي أصغر دولة في أمريكا الجنوبية من حيث المساحة؟", answer: "سورينام" },
+            { question: "ما هو الجزء المسؤول عن ضخ الدم في جسم الإنسان؟", answer: "القلب" },
+            { question: "ما اسم الخط الوهمي الذي يقسم الكرة الأرضية إلى نصفين شمالي وجنوبي؟", answer: "خط الاستواء" },
+            { question: "ما اسم البحر الذي لا يحتوي على شواطئ؟", answer: "بحر سارجاسو" },
+            { question: "ما هي عاصمة ألمانيا؟", answer: "برلين" },
+            { question: "من هو النبي الذي بنى الكعبة المشرفة مع ابنه إسماعيل؟", answer: "النبي إبراهيم عليه السلام" },
+            { question: "ما هي المادة المسؤولة عن تلوين الشعر والجلد؟", answer: "الميلانين" },
+            { question: "ما اسم الشاعر العربي الجاهلي الذي قُتل خطأً بالسم؟", answer: "امرؤ القيس (أو طرفة بن العبد)" },
+            { question: "ما هو الاسم الذي يطلق على علم دراسة الحيوانات؟", answer: "علم الحيوان (Zoology)" },
+            { question: "ما هي الدولة التي تشتهر بإنتاج ساعة \"كوكو\" الخشبية؟", answer: "ألمانيا (الغابة السوداء)" },
+            { question: "ما هو أول أربعة من الخلفاء الراشدين ترتيباً؟", answer: "أبو بكر الصديق" },
+            { question: "ما اسم العملية التي يُصنع بها الخبز من العجين؟", answer: "الخبز (أو التخمير والخبز)" },
+            { question: "ما هو الكوكب الذي يدور حول الشمس في أقصر مدة زمنية؟", answer: "عطارد" },
+            { question: "ما اسم الوكالة الفضائية الأمريكية؟", answer: "ناسا (NASA)" },
+            { question: "ما اسم القلعة الشهيرة الموجودة في مدينة حلب السورية؟", answer: "قلعة حلب" },
+            { question: "ما هو العنصر الكيميائي الذي يُستخدم في صناعة الأسلاك الكهربائية بكثرة؟", answer: "النحاس (Copper)" },
+            { question: "ما هو اسم أكبر شبه جزيرة في العالم؟", answer: "شبه الجزيرة العربية" },
+            { question: "ما هي السورة القرآنية التي ذُكر فيها قصة أصحاب الكهف؟", answer: "سورة الكهف" },
+            { question: "ما هو اسم الممثل الذي أدى دور \"شارلي شابلن\" الشهير؟", answer: "شارلي شابلن نفسه" },
+            { question: "ما اسم القناة الشهيرة في إيطاليا التي تشتهر بالقوارب الخشبية \"الجندول\"؟", answer: "القناة الكبرى في البندقية (فينيسيا)" },
+            { question: "ما هو الشيء الذي له عنق ولا له رأس؟", answer: "الزجاجة أو القميص" },
+            { question: "ما اسم الجهاز الذي يقيس درجة الحرارة؟", answer: "الترمومتر (ميزان الحرارة)" },
+            { question: "ما هو الرقم الذي يقسم على كل الأرقام؟", answer: "الصفر (في القسمة يكون الناتج صفراً دائماً إذا قُسم على عدد غير الصفر)" },
+            { question: "ما اسم الكتاب الذي يحتوي على قصص ألف ليلة وليلة؟", answer: "ألف ليلة وليلة" },
+            { question: "ما هو أول من وضع النقاط على الحروف في اللغة العربية؟", answer: "أبو الأسود الدؤلي" },
+            { question: "ما هو الفرق بين الخلية النباتية والحيوانية فيما يتعلق بالجدار الخارجي؟", answer: "الخلية النباتية لديها جدار خلوي، بينما الحيوانية ليس لديها" },
+            { question: "ما اسم أكبر بحر مغلق في العالم؟", answer: "بحر قزوين" },
+            { question: "ما اسم الخط الذي يتكون من دوائر عرض متساوية تبعد عن بعضها البعض؟", answer: "دوائر العرض" },
+            { question: "ما هو الكوكب الذي يُعرف بأنه \"توأم الأرض\" لحجمه وكتلته المشابهة؟", answer: "الزهرة" },
+            { question: "ما اسم الفيلسوف اليوناني الذي كان أستاذاً للإسكندر الأكبر؟", answer: "أرسطو" },
+            { question: "ما هو أقدم شكل من أشكال الكتابة المعروفة؟", answer: "المسمارية (في سومر)" },
+            { question: "ما اسم الجهاز الذي يقيس سرعة الرياح؟", answer: "الأنيمومتر" },
+            { question: "ما هو الموطن الأصلي لشجرة الزيتون؟", answer: "منطقة حوض البحر الأبيض المتوسط" },
+            { question: "ما هي عاصمة جنوب إفريقيا؟", answer: "بريتوريا (إدارية)، كيب تاون (تشريعية)، بلومفونتين (قضائية)" },
+            { question: "ما هو الشيء الذي يمتلكه الأغنياء والفقراء، وإذا أكله الفقير يموت؟", answer: "العدم (لا شيء)" },
+            { question: "ما هي الدولة التي فازت بأول كأس عالم لكرة القدم عام 1930؟", answer: "الأوروغواي" },
+            { question: "ما هي المدينة التي بُني فيها \"تاج محل\" الشهير؟", answer: "آجرا، الهند" }
+        ];
+
+        const mySubjectTitle = "معلومات عامة";
+        // --- End of Updated Content ---
+
+        const questionsPerPage = 5; // You can change this number
+
+
+
+        const questionsPage = document.getElementById('questions-page');
+        const thankYouPage = document.getElementById('thank-you-page');
+        const questionsContainer = document.getElementById('questions-container');
+        const subjectTitle = document.getElementById('subject-title');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const returnButton = document.getElementById('return-btn');
+        let currentPage = 1;
+
+        function renderQuestions() {
+            questionsContainer.innerHTML = '';
+            const startIndex = (currentPage - 1) * questionsPerPage;
+            const endIndex = startIndex + questionsPerPage;
+            const pageQuestions = myQuestions.slice(startIndex, endIndex);
+            
+            pageQuestions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-container';
+                
+                const questionNumber = document.createElement('div');
+                questionNumber.className = 'question-number';
+                questionNumber.textContent = startIndex + index + 1;
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'question';
+                questionText.textContent = q.question;
+                
+                const answerText = document.createElement('div');
+                answerText.className = 'answer';
+                answerText.textContent = q.answer;
+                
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'toggle-answer-btn';
+                toggleBtn.textContent = 'إظهار الإجابة';
+                toggleBtn.onclick = function() {
+                    if (answerText.style.display === 'none' || answerText.style.display === '') {
+                        answerText.style.display = 'block';
+                        toggleBtn.textContent = 'إخفاء الإجTابة';
+                    } else {
+                        answerText.style.display = 'none';
+                        toggleBtn.textContent = 'إظهار الإجابة';
+                    }
+                };
+                
+                questionElement.appendChild(questionNumber);
+                questionElement.appendChild(questionText);
+                questionElement.appendChild(toggleBtn);
+                questionElement.appendChild(answerText);
+                questionsContainer.appendChild(questionElement);
+            });
+            
+            prevButton.disabled = currentPage === 1;
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (!myQuestions.length || totalPages === 0 || currentPage === totalPages) {
+                nextButton.textContent = 'انهاء';
+                if (totalPages <= 1) prevButton.disabled = true;
+            } else {
+                nextButton.textContent = 'الصفحة التالية';
+            }
+        }
+
+        function showThankYou() {
+            questionsPage.style.display = 'none';
+            thankYouPage.style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            subjectTitle.textContent = mySubjectTitle;
+            renderQuestions();
+        });
+
+        prevButton.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            }
+        };
+        
+        nextButton.onclick = () => {
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            } else if (myQuestions.length > 0) {
+                showThankYou();
+            }
+        };
+
+        returnButton.onclick = () => {
+            thankYouPage.style.display = 'none';
+            questionsPage.style.display = 'block';
+            currentPage = 1;
+            renderQuestions();
+            window.scrollTo(0, 0);
+        };
+
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        let particleCount = calculateParticleCount();
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speed = Math.random() / 5 + 0.1;
+                this.opacity = 1;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            update() {
+                this.y -= this.speed;
+                if (this.y < 0) this.reset();
+                if (!this.fadingOut && Date.now() > this.fadeStart) this.fadingOut = true;
+                if (this.fadingOut) {
+                    this.opacity -= 0.008;
+                    if (this.opacity <= 0) this.reset();
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, ${255 - (Math.random() * 255 / 2)}, 255, ${this.opacity})`;
+                ctx.fillRect(this.x, this.y, 0.4, Math.random() * 2 + 1);
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        function calculateParticleCount() {
+            return Math.floor((canvas.width * canvas.height) / 6000);
+        }
+
+        function onResize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particleCount = calculateParticleCount();
+            initParticles();
+        }
+
+        window.addEventListener('resize', onResize);
+        initParticles();
+        animate();
+    </script>
+</body>
+</html>
+

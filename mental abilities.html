@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>القدرات العقلية</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,400" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #100e17;
+            --card-bg: #17141d;
+            --accent-blue: rgb(0, 154, 217);
+            --accent-gold: rgb(211, 173, 70);
+            --accent-blue-light: rgb(14, 175, 233);
+            --text-light: #f0f0f0;
+            --answer-green: #90EE90;
+            --bar-gradient: linear-gradient(90deg, rgba(0,154,217,1) 0%, rgba(217,147,0,1) 65%, rgba(255,186,0,1) 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Open Sans', 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 50px;
+            z-index: 1; 
+        }
+
+        
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: var(--dark-bg);
+        }
+
+        
+        #questions-page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            display: block;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-gold);
+            position: relative;
+        }
+        
+        .subject-title {
+            font-size: 2.2rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        .question-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            border: 2px solid var(--accent-blue);
+            box-shadow: -1rem 0 3rem #000;
+        }
+        
+        .question-number {
+            position: absolute;
+            top: -15px;
+            /* Adjusted for RTL */
+            right: 20px;
+            left: auto;
+            background: var(--accent-blue);
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid var(--accent-gold);
+        }
+        
+        .question {
+            font-size: 1.4rem;
+            color: var(--accent-blue-light);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+        
+        .answer {
+            font-size: 1.3rem;
+            color: var(--answer-green);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            /* Adjusted for RTL */
+            border-right: 4px solid var(--answer-green);
+            border-left: none;
+            margin-top: 15px;
+            line-height: 1.6;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .toggle-answer-btn, .nav-button, .return-button {
+            background: var(--bar-gradient);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .toggle-answer-btn:hover, .nav-button:hover, .return-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-blue);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        
+        .nav-button:disabled {
+            background: #2e3033;
+            color: #aaa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #thank-you-page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            text-align: center;
+            display: none; 
+            min-height: 70vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .thank-you {
+            font-size: 4rem;
+            color: var(--accent-gold);
+            margin: 40px 0;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .final-message {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            max-width: 700px;
+            line-height: 1.8;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--accent-blue);
+        }
+        
+        .return-button {
+             padding: 15px 40px;
+             font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .subject-title {
+                font-size: 1.8rem;
+            }
+            .question {
+                font-size: 1.2rem;
+            }
+            .answer {
+                font-size: 1.1rem;
+            }
+            .thank-you {
+                font-size: 3rem;
+            }
+            .toggle-answer-btn {
+                font-size: 1rem;
+                padding: 6px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- صفحة الأسئلة -->
+    <section id="questions-page">
+        <div class="page-header">
+            <h1 class="subject-title" id="subject-title">القدرات العقلية</h1>
+        </div>
+        
+        <div id="questions-container"></div>
+        
+        <div class="navigation">
+            <button class="nav-button" id="prev-button">
+                الصفحة السابقة
+            </button>
+            <button class="nav-button" id="next-button">
+                الصفحة التالية
+            </button>
+        </div>
+    </section>
+    
+    <!-- صفحة الشكر -->
+    <section id="thank-you-page">
+        <div class="thank-you">رائع!</div>
+        <p class="final-message">
+            لقد أكملت هذا القسم بنجاح. نأمل أن تكون قد استفدت.
+            تذكر دائماً أن المعرفة هي القوة.
+        </p>
+        <button class="return-button" id="return-btn">
+            العودة لبداية الأسئلة
+        </button>
+    </section>
+
+    <script>
+        const myQuestions = [
+            { question: "ما هو الشيء الذي يرتفع دائماً ولا ينزل أبداً؟", answer: "العمر" },
+            { question: "ما هو الشيء الذي كلما أخذت منه زاد حجمه؟", answer: "الحفرة" },
+            { question: "أنا أملك مدناً ولكن لا أملك بيوتاً، وأملك جبالاً ولكن لا أملك أشجاراً. فمن أنا؟", answer: "الخريطة" },
+            { question: "ما هو الشيء الذي يمشي ويقف وليس له أرجل؟", answer: "الساعة" },
+            { question: "ما هو الشيء الذي له أسنان ولكنه لا يعض؟", answer: "المشط" },
+            { question: "ما هو الشيء الذي يكسر عندما يُذكر اسمه؟", answer: "الصمت" },
+            { question: "ما هو الشيء الذي تستطيع إمساكه بيدك اليمنى ولا تستطيع إمساكه بيدك اليسرى؟", answer: "كوعك الأيسر" },
+            { question: "ما هو البيت الذي لا يحتوي على أبواب أو شبابيك؟", answer: "بيت الشعر" },
+            { question: "ما هو الشيء الذي له عين واحدة ولا يستطيع أن يرى؟", answer: "الإبرة" },
+            { question: "ما هو الشيء الذي يكتب ولا يقرأ؟", answer: "القلم" },
+            { question: "ما هو الشيء الذي إذا ضربته استقام؟", answer: "المسمار" },
+            { question: "ما هو الشهر الذي إذا حذفت أول حرف منه أصبح فاكهة؟", answer: "تموز (موز)" },
+            { question: "ما هو الشيء الذي لا يمكن أن نعدله إلا إذا قمنا بضربه؟", answer: "المسمار" },
+            { question: "ما هو الشيء الذي كلما زاد نقص؟", answer: "العمر/المرحلة" },
+            { question: "ما هو الشيء الذي له فم ولكنه لا يتحدث، وله سرير ولكنه لا ينام؟", answer: "النهر" },
+            { question: "ما هو الشيء الذي يدور حول المنزل دون أن يتحرك؟", answer: "السور أو الحائط" },
+            { question: "ما هو الشيء الذي له رأس وذيل وليس له جسم؟", answer: "العملة المعدنية" },
+            { question: "ما هو الشيء الذي كلما زاد دفئه زاد برده؟", answer: "الخبز" },
+            { question: "ما هو الشيء الذي يتبعك أينما ذهبت ولكنه لا يتحرك؟", answer: "الظل" },
+            { question: "خمس قطط استغرقت خمس دقائق لاصطياد خمسة فئران. كم من الوقت تستغرق مائة قطة لاصطياد مائة فأر؟", answer: "خمس دقائق (لأن كل قطة تحتاج 5 دقائق لصيد فأر)" },
+            { question: "ما هو الشيء الذي تراه في الليل ثلاث مرات وفي النهار مرة واحدة؟", answer: "حرف اللام" },
+            { question: "ما هو الشيء الذي له مفاتيح ولكنه لا يفتح الأبواب؟", answer: "البيانو أو آلة الأورغ" },
+            { question: "رجل في غرفة، لا يوجد بها إلا باب واحد مغلق ومفتاحه مفقود، وهناك نافذة واحدة، ارتفاعها كبير جداً. كيف يخرج؟", answer: "ينظر من النافذة/يتوقف عن التفكير في النافذة والباب" },
+            { question: "أنا أبدأ بالبحر وأنهي في جولة، ولديّ سماء ولكني لست قمرًا. فمن أنا؟", answer: "الجزيرة" },
+            { question: "لدي أوراق ولكني لست شجرة، لدي غلاف ولكني لست هدية، لدي معلومات ولكني لست شخصاً. فمن أنا؟", answer: "الكتاب" },
+            { question: "أكمل المتتالية: 2، 4، 8، 16، ___", answer: "32 (مضاعفة العدد السابق × 2)" },
+            { question: "أكمل المتتالية: 1، 1، 2، 3، 5، 8، ___", answer: "13 (متتالية فيبوناتشي - مجموع العددين السابقين)" },
+            { question: "أكمل المتتالية: 100، 95، 90، 85، 80، ___", answer: "75 (طرح 5 من العدد السابق)" },
+            { question: "أكمل المتتالية: 1، 4، 9، 16، 25، ___", answer: "36 (متتالية الأعداد المربعة: 1^2, 2^2, 3^2, ...)" },
+            { question: "أكمل المتتالية: 1، 8، 27، 64، ___", answer: "125 (متتالية الأعداد المكعبة: 1^3, 2^3, 3^3, ...)" },
+            { question: "أكمل المتتالية: 6، 12، 18، 24، 30، ___", answer: "36 (مضاعفات العدد 6)" },
+            { question: "أكمل المتتالية: 5، 7، 10، 14، 19، ___", answer: "25 (إضافة متزايدة: +2، +3، +4، +5، +6)" },
+            { question: "أكمل المتتالية: 2، 3، 5، 7، 11، 13، ___", answer: "17 (متتالية الأعداد الأولية)" },
+            { question: "أكمل المتتالية: 1، 2، 4، 7، 11، 16، ___", answer: "22 (إضافة متزايدة: +1، +2، +3، +4، +5، +6)" },
+            { question: "أكمل المتتالية: 121، 144، 169، 196، ___", answer: "225 (متتالية مربعات الأعداد: 11، 12، 13، 14، 15)" },
+            { question: "إذا كان موز + موز = 10، و موز + تفاحة = 7، و تفاحة - عنبة = 1. فكم يساوي موز + تفاحة + عنبة؟", answer: "8 (لأن: الموز = 5، التفاحة = 2، العنب = 1. المجموع: 5 + 2 + 1 = 8)" },
+            { question: "إذا كانت لديك 12 حبة عنب، وأكلت نصفها، ثم أعطيت نصف ما تبقى لصديقك، فكم حبة عنب بقيت لديك؟", answer: "3 (المتبقي بعد الأكل: 6. المتبقي بعد العطاء: 6 ÷ 2 = 3)" },
+            { question: "أنت تقود حافلة... ما هو عمر سائق الحافلة؟", answer: "عمرك أنت (أنت من يقود الحافلة)" },
+            { question: "ما هو العدد الذي يساوي ربع عُشر خمس من 200؟", answer: "1 (1/4 × 1/10 × 1/5 × 200 = 1)" },
+            { question: "ثلاثة أصدقاء، جمعوا 60 تفاحة. إذا كان علي لديه ضعف ما لدى محمد، ومحمد لديه نصف ما لدى خالد. فكم تفاحة لدى محمد؟", answer: "12 تفاحة (لنفرض محمد = س. علي = 2س. خالد = 2س. 2س + س + 2س = 5س = 60. س = 12)" },
+            { question: "إذا كانت قيمة A = 5 و B = 3. فكم تساوي (A × B) + (A - B )؟", answer: "17 ( (5 × 3) + (5 - 3) = 15 + 2 = 17 )" },
+            { question: "الساعة الآن 1:00. ما هو الوقت بعد 100 ساعة؟", answer: "5:00 (100 ÷ 24 = 4 أيام والباقي 4 ساعات. 1 + 4 = 5)" },
+            { question: "لدى بائع 5 أقفاص طيور، في كل قفص 5 طيور، كل طائر يبيض 5 بيضات. كم عدد الطيور التي يملكها البائع؟", answer: "25 طائراً (عدد الطيور 5 × 5 = 25)" },
+            { question: "إذا كان اليوم هو الأربعاء، فما هو اليوم الذي سيكون بعد 60 يوماً؟", answer: "الجمعة (60 ÷ 7 = 8 والباقي 4. الأربعاء + 4 أيام = الجمعة)" },
+            { question: "ما هو العدد الذي إذا أُضيف إليه 5 وضُرب الناتج في 3 أصبح 30؟", answer: "5 ( (س + 5) × 3 = 30. س + 5 = 10. س = 5 )" },
+            { question: "كم مرة يمكنك طرح العدد 5 من العدد 25؟", answer: "مرة واحدة (في المرة التالية سيكون الرقم 20)" },
+            { question: "إذا كان لديك ثلاثة أرقام فردية متتالية، ومجموعها يساوي 45. فما هي الأرقام؟", answer: "13، 15، 17 (45 ÷ 3 = 15. الأرقام هي التي تسبقه وتليه من الأعداد الفردية.)" },
+            { question: "أربع بيضات تحتاج إلى أربع دقائق لتُسلق. كم دقيقة تحتاج بيضة واحدة لتُسلق؟", answer: "أربع دقائق (يتم سلق جميع البيض في نفس الوقت)" },
+            { question: "ما هو الرقم الذي يأتي بعد ذلك في التسلسل: 3، 7، 13، 21، 31، ___؟", answer: "43 (الفرق يتزايد: +4، +6، +8، +10، +12)" },
+            { question: "إذا كان أحمد يزن نصف وزن خالد، ووزن خالد يزيد 20 كيلوجراماً عن وزن أحمد، فكم يزن أحمد؟", answer: "20 كيلوجراماً (الفرق بينهما هو نصف وزن خالد، أي 20 كجم)" },
+            { question: "ما هو الشيء الذي يملك لساناً ولكنه لا يتحدث؟", answer: "الحذاء / النار" },
+            { question: "ما هي الكلمة التي تُكتب خطأ دائماً؟", answer: "خطأ" },
+            { question: "لدي 6 أحرف. إذا حذفت أول حرف أصبحت عدداً. من أنا؟", answer: "عشرون (شرون)" },
+            { question: "ما هو الشيء الذي له رقبة وليس له رأس؟", answer: "الزجاجة" },
+            { question: "ما هو اسم الفاكهة التي يمكن قراءتها من اليمين لليسار ومن اليسار لليمين دون تغيير؟", answer: "التوت" },
+            { question: "شيء ما كلما طال قصر. ما هو؟", answer: "الشمعة أو العمر" },
+            { question: "ما هو السؤال الذي لا يمكنك الإجابة عليه بـ 'نعم'؟", answer: "هل أنت نائم؟" },
+            { question: "ما هو الشيء الذي يمشي أمامك ولا يمكنك رؤيته؟", answer: "المستقبل" },
+            { question: "ما هو الشيء الذي له أجنحة ولكنه لا يطير، وله ذيل ولكنه ليس حيواناً؟", answer: "الطائرة الورقية" },
+            { question: "ما هي الكلمة التي لو نطقت بها لكسرت؟", answer: "الصمت" },
+            { question: "ما هو الشيء الذي يمكنك أن تأكله ولكنه ليس طعاماً؟", answer: "القسم (اليمين)" },
+            { question: "ما هي الكلمة التي تبدأ وتنتهي بنفس الحرف، وتحتوي على 5 أحرف، وهي جزء من جسم الإنسان؟", answer: "شعور" },
+            { question: "ما هو الشيء الذي يمتلك مدخنة واحدة ولكنه لا يطلق دخاناً؟", answer: "البراد (الثلاجة)" },
+            { question: "ما هي السورة التي ذكرت فيها البسملة مرتين؟", answer: "سورة النمل" },
+            { question: "ما هو الشيء الذي يخترق الزجاج دون كسره؟", answer: "الضوء" },
+            { question: "أنا أعيش في الماء ولكني لست سمكة. لديّ قشرة ولكني لست بيضة. فمن أنا؟", answer: "السلحفاة" },
+            { question: "ما هو الشيء الذي إذا أضفت له حرفاً أصبح أكبر؟", answer: "كِبْر (إذا أضفت الألف يصبح أكبر)" },
+            { question: "ما هو الكائن الذي ينام بعين واحدة مفتوحة؟", answer: "الدلفين" },
+            { question: "ما هو الشيء الذي يتجمد بالحرارة؟", answer: "البيض" },
+            { question: "ما هو الذي تملكه أنت، ولكن الآخرون يستخدمونه أكثر منك؟", answer: "اسمك" },
+            { question: "شيء يتسع للمئات ولا يتسع إلا لوزن خفيف جداً.", answer: "الورقة/المظروف" },
+            { question: "ما هو الشيء الذي تبتلعه ويبتلعك؟", answer: "الماء" },
+            { question: "ما هو الشيء الذي له قلب ولكن لا ينبض؟", answer: "الخرشوف" },
+            { question: "ما هو السؤال الذي تختلف إجابته كلما تكرر؟", answer: "كم الساعة الآن؟" },
+            { question: "كم حرفاً في 'الأبجدية'؟", answer: "ثمانية (حسب حروف الكلمة نفسها)" },
+            { question: "إذا كان الشكل (أ) مربع، والشكل (ب) مثلث، والشكل (أ) = 4 أشكال (ب). إذا كانت مساحة المربع 16 وحدة، فكم مساحة المثلث الواحد؟", answer: "4 وحدات مربعة (مساحة المثلث = 16 ÷ 4 = 4)" },
+            { question: "لديك 3 صناديق، الملصقات عليها خاطئة: تفاح، برتقال، تفاح وبرتقال. إذا سحبت فاكهة واحدة من صندوق 'تفاح وبرتقال' وعرفت أنها تفاحة. ماذا يوجد في الصندوق المكتوب عليه 'برتقال'؟", answer: "تفاح وبرتقال" },
+            { question: "رجلان يقفان في طريق، أحدهما ينظر شمالاً والآخر ينظر جنوباً. كيف يمكنهما رؤية بعضهما البعض دون استخدام مرايا؟", answer: "كانا يقفان وجهاً لوجه" },
+            { question: "لديك ثلاث مصابيح في غرفة، وثلاثة مفاتيح في غرفة أخرى. كيف تعرف أي مفتاح يشغل أي مصباح بزيارة غرفة المصابيح مرة واحدة فقط؟", answer: "شغل الأول وأطفئه بعد فترة، شغل الثاني، ثم ادخل الغرفة (المضاء = الثاني، الدافئ = الأول، البارد = الثالث)." },
+            { question: "إذا كان الاتجاه نحو الشرق هو اليمين، والاتجاه نحو الغرب هو اليسار. فما هو الاتجاه إذا استدرت 180 درجة من الشمال؟", answer: "الجنوب (الاستدارة 180 درجة هي الاتجاه المعاكس)" },
+            { question: "لديك 9 كرات متطابقة، واحدة أثقل. باستخدام ميزان الكفتين مرتين فقط، كيف تحدد الكرة الأثقل؟", answer: "قسّمها 3-3-3. زن مجموعتين لمعرفة المجموعة الأثقل. زن كرتين من المجموعة الأثقل لتحديد الأثقل." },
+            { question: "لديك زجاجتان سعة 1 لتر، إحداهما ماء والأخرى زيت. كيف يمكنك أن تجعل كلاً من الزجاجتين تحتوي على نصف ماء ونصف زيت، باستخدام أقل عدد ممكن من الحركات؟", answer: "لا يمكن ذلك بدون وعاء وسيط للخلط" },
+            { question: "إذا كان 2 + 3 = 10، و 8 + 4 = 96، و 7 + 2 = 63. فكم يساوي 9 + 5؟", answer: "126 (القاعدة هي: A + B = A × (A + B). 9 × 14 = 126)" },
+            { question: "شخص يعيش في الطابق العاشر. كل يوم يستخدم المصعد للنزول. وعند العودة، يصعد إلى الطابق السابع ثم يكمل صعوداً إلى العاشر سيراً على الأقدام. ما هو السبب؟", answer: "لأنه قصير (لا يستطيع الوصول إلى زر الطابق العاشر)" },
+            { question: "ما هو الشيء الذي يمكنك إمساكه بيد واحدة ولكنه لا يزن شيئاً؟", answer: "الظل" },
+            { question: "أي من الكلمات التالية لا تنتمي للمجموعة؟ (أ) مربع، (ب) مثلث، (ج) هرم، (د) دائرة.", answer: "(ج) هرم (الهرم شكل ثلاثي الأبعاد والباقي ثنائي)" },
+            { question: "أي من الكلمات التالية لا تنتمي للمجموعة؟ (أ) أسد، (ب) نمر، (ج) فيل، (د) فهد.", answer: "(ج) فيل (الفيل من آكلات الأعشاب والبقية آكلات لحوم)" },
+            { question: "أي رقم يجب أن يحل محل علامة الاستفهام؟ (النمط: الرقم في الأسفل هو ضعف الرقم في الأعلى) 5-10، 7-؟", answer: "14 (7 × 2 = 14)" },
+            { question: "ما هو الحرف التالي في التسلسل: أ، ب، د، ز، ___؟", answer: "ك (الفروقات في الترتيب الأبجدي هي: +1، +2، +3، +4)" },
+            { question: "هناك خمسة أشخاص تحت مظلة واحدة، ولكن لم يبتل أي منهم. كيف ذلك؟", answer: "لم يكن الجو ممطراً." },
+            { question: "ما هو الشيء الذي لا يأكل أبداً ولكنه يحتاج إلى الماء ليعيش؟", answer: "النار" },
+            { question: "إذا كانت 'ساعة' هي 'وقت'، فإن 'خريطة' هي '___'.", answer: "مكان (الساعة تقيس الوقت، والخريطة تمثل المكان)" },
+            { question: "ما هو الشيء الذي يمكن أن يطير دون أجنحة، ويبكي دون عيون؟", answer: "الغيوم" },
+            { question: "لديّ رأس وذيل، لكن ليس لديّ جسم. لست كائناً حياً. فمن أنا؟", answer: "العملة المعدنية" },
+            { question: "إذا كان أمس غداً هو السبت، فما هو اليوم؟", answer: "الخميس (غداً هو الجمعة، لذا أمس الجمعة هو الخميس)" },
+            { question: "إذا كان أحمد أطول من علي، وعلي أقصر من سامي. فمن هو الأقصر؟", answer: "علي (لأنه أقصر من أحمد وأقصر من سامي)." },
+            { question: "لو قمت بخلط الألوان: الأزرق + الأصفر. ماذا ينتج؟", answer: "الأخضر" },
+            { question: "إذا كنت تركض في سباق وتجاوزت الشخص الثاني، فما هو ترتيبك الآن؟", answer: "الثاني" },
+            { question: "إذا كانت الساعة 12:00، وتحرك عقرب الدقائق 90 درجة، فكم تصبح الساعة؟", answer: "12:15 (كل 90 درجة تعادل ربع ساعة)" },
+            { question: "لديك ثلاثة أوعية، سعة الأول 8 لترات والثاني 5 لترات والثالث 3 لترات. لديك كمية غير محدودة من الماء. كيف يمكنك قياس 4 لترات بالضبط؟", answer: "املأ 5، افرغ 5 في 3 (يتبقى 2). افرغ 3. انقل 2 إلى 3. املأ 5. املأ 3 (به 2) من 5، يتبقى 4 في وعاء 5." }
+        ];
+
+        const mySubjectTitle = "القدرات العقلية";
+        const questionsPerPage = 5;
+
+
+
+        const questionsPage = document.getElementById('questions-page');
+        const thankYouPage = document.getElementById('thank-you-page');
+        const questionsContainer = document.getElementById('questions-container');
+        const subjectTitle = document.getElementById('subject-title');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const returnButton = document.getElementById('return-btn');
+        let currentPage = 1;
+
+        function renderQuestions() {
+            questionsContainer.innerHTML = '';
+            const startIndex = (currentPage - 1) * questionsPerPage;
+            const endIndex = startIndex + questionsPerPage;
+            const pageQuestions = myQuestions.slice(startIndex, endIndex);
+            
+            pageQuestions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-container';
+                
+                const questionNumber = document.createElement('div');
+                questionNumber.className = 'question-number';
+                questionNumber.textContent = startIndex + index + 1;
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'question';
+                questionText.textContent = q.question;
+                
+                const answerText = document.createElement('div');
+                answerText.className = 'answer';
+                answerText.textContent = q.answer;
+                
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'toggle-answer-btn';
+                toggleBtn.textContent = 'إظهار الإجابة';
+                toggleBtn.onclick = function() {
+                    if (answerText.style.display === 'none' || answerText.style.display === '') {
+                        answerText.style.display = 'block';
+                        toggleBtn.textContent = 'إخفاء الإجابة';
+                    } else {
+                        answerText.style.display = 'none';
+                        toggleBtn.textContent = 'إظهار الإجابة';
+                    }
+                };
+                
+                questionElement.appendChild(questionNumber);
+                questionElement.appendChild(questionText);
+                questionElement.appendChild(toggleBtn);
+                questionElement.appendChild(answerText);
+                questionsContainer.appendChild(questionElement);
+            });
+            
+            prevButton.disabled = currentPage === 1;
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (!myQuestions.length || totalPages === 0 || currentPage === totalPages) {
+                nextButton.textContent = 'انهاء';
+                if (totalPages <= 1) prevButton.disabled = true;
+            } else {
+                nextButton.textContent = 'الصفحة التالية';
+            }
+        }
+
+        function showThankYou() {
+            questionsPage.style.display = 'none';
+            thankYouPage.style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            subjectTitle.textContent = mySubjectTitle;
+            renderQuestions();
+        });
+
+        prevButton.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            }
+        };
+        
+        nextButton.onclick = () => {
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            } else if (myQuestions.length > 0) {
+                showThankYou();
+            }
+        };
+
+        returnButton.onclick = () => {
+            thankYouPage.style.display = 'none';
+            questionsPage.style.display = 'block';
+            currentPage = 1;
+            renderQuestions();
+            window.scrollTo(0, 0);
+        };
+
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        let particleCount = calculateParticleCount();
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speed = Math.random() / 5 + 0.1;
+                this.opacity = 1;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            update() {
+                this.y -= this.speed;
+                if (this.y < 0) this.reset();
+                if (!this.fadingOut && Date.now() > this.fadeStart) this.fadingOut = true;
+                if (this.fadingOut) {
+                    this.opacity -= 0.008;
+                    if (this.opacity <= 0) this.reset();
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, ${255 - (Math.random() * 255 / 2)}, 255, ${this.opacity})`;
+                ctx.fillRect(this.x, this.y, 0.4, Math.random() * 2 + 1);
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        function calculateParticleCount() {
+            return Math.floor((canvas.width * canvas.height) / 6000);
+        }
+
+        function onResize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particleCount = calculateParticleCount();
+            initParticles();
+        }
+
+        window.addEventListener('resize', onResize);
+        initParticles();
+        animate();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,400" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #100e17;
+            --card-bg: #17141d;
+            --accent-blue: rgb(0, 154, 217);
+            --accent-gold: rgb(211, 173, 70);
+            --accent-blue-light: rgb(14, 175, 233);
+            --text-light: #f0f0f0;
+            --answer-green: #90EE90;
+            --bar-gradient: linear-gradient(90deg, rgba(0,154,217,1) 0%, rgba(217,147,0,1) 65%, rgba(255,186,0,1) 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Open Sans', sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 50px;
+            z-index: 1; 
+        }
+
+        
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: var(--dark-bg);
+        }
+
+        
+        #questions-page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            display: block;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-gold);
+            position: relative;
+        }
+        
+        .subject-title {
+            font-size: 2.2rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        .question-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            border: 2px solid var(--accent-blue);
+            box-shadow: -1rem 0 3rem #000;
+        }
+        
+        .question-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--accent-blue);
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid var(--accent-gold);
+        }
+        
+        .question {
+            font-size: 1.4rem;
+            color: var(--accent-blue-light);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+        
+        .answer {
+            font-size: 1.3rem;
+            color: var(--answer-green);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--answer-green);
+            margin-top: 15px;
+            line-height: 1.6;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .toggle-answer-btn, .nav-button, .return-button {
+            background: var(--bar-gradient);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .toggle-answer-btn:hover, .nav-button:hover, .return-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-blue);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        
+        .nav-button:disabled {
+            background: #2e3033;
+            color: #aaa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #thank-you-page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            text-align: center;
+            display: none; 
+            min-height: 70vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .thank-you {
+            font-size: 4rem;
+            color: var(--accent-gold);
+            margin: 40px 0;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .final-message {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            max-width: 700px;
+            line-height: 1.8;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--accent-blue);
+        }
+        
+        .return-button {
+             padding: 15px 40px;
+             font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .subject-title {
+                font-size: 1.8rem;
+            }
+            .question {
+                font-size: 1.2rem;
+            }
+            .answer {
+                font-size: 1.1rem;
+            }
+            .thank-you {
+                font-size: 3rem;
+            }
+            .toggle-answer-btn {
+                font-size: 1rem;
+                padding: 6px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- صفحة الأسئلة -->
+    <section id="questions-page">
+        <div class="page-header">
+            <h1 class="subject-title" id="subject-title">sports</h1>
+        </div>
+        
+        <div id="questions-container"></div>
+        
+        <div class="navigation">
+            <button class="nav-button" id="prev-button">
+                الصفحة السابقة
+            </button>
+            <button class="nav-button" id="next-button">
+                الصفحة التالية
+            </button>
+        </div>
+    </section>
+    
+    <!-- صفحة الشكر -->
+    <section id="thank-you-page">
+        <div class="thank-you">رائع!</div>
+        <p class="final-message">
+            لقد أكملت هذا القسم بنجاح. نأمل أن تكون قد استفدت.
+            تذكر دائماً أن المعرفة هي القوة.
+        </p>
+        <button class="return-button" id="return-btn">
+            العودة لبداية الأسئلة
+        </button>
+    </section>
+
+    <script>
+        const myQuestions = [
+            { question: "السؤال الأول يوضع هنا...", answer: "الإجابة الأولى توضع هنا..." },
+            { question: "السؤال الثاني يوضع هنا...", answer: "الإجابة الثانية توضع هنا..." },
+            { question: "السؤال الثالث يوضع هنا...", answer: "الإجابة الثالثة توضع هنا..." },
+            { question: "السؤال الرابع يوضع هنا...", answer: "الإجابة الرابعة توضع هنا..." },
+            { question: "السؤال الخامس يوضع هنا...", answer: "الإجابة الخامسة توضع هنا..." },
+        ];
+
+        const mySubjectTitle = "sports";
+        const questionsPerPage = 5;
+
+
+
+        const questionsPage = document.getElementById('questions-page');
+        const thankYouPage = document.getElementById('thank-you-page');
+        const questionsContainer = document.getElementById('questions-container');
+        const subjectTitle = document.getElementById('subject-title');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const returnButton = document.getElementById('return-btn');
+        let currentPage = 1;
+
+        function renderQuestions() {
+            questionsContainer.innerHTML = '';
+            const startIndex = (currentPage - 1) * questionsPerPage;
+            const endIndex = startIndex + questionsPerPage;
+            const pageQuestions = myQuestions.slice(startIndex, endIndex);
+            
+            pageQuestions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-container';
+                
+                const questionNumber = document.createElement('div');
+                questionNumber.className = 'question-number';
+                questionNumber.textContent = startIndex + index + 1;
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'question';
+                questionText.textContent = q.question;
+                
+                const answerText = document.createElement('div');
+                answerText.className = 'answer';
+                answerText.textContent = q.answer;
+                
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'toggle-answer-btn';
+                toggleBtn.textContent = 'إظهار الإجابة';
+                toggleBtn.onclick = function() {
+                    if (answerText.style.display === 'none' || answerText.style.display === '') {
+                        answerText.style.display = 'block';
+                        toggleBtn.textContent = 'إخفاء الإجابة';
+                    } else {
+                        answerText.style.display = 'none';
+                        toggleBtn.textContent = 'إظهار الإجابة';
+                    }
+                };
+                
+                questionElement.appendChild(questionNumber);
+                questionElement.appendChild(questionText);
+                questionElement.appendChild(toggleBtn);
+                questionElement.appendChild(answerText);
+                questionsContainer.appendChild(questionElement);
+            });
+            
+            prevButton.disabled = currentPage === 1;
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (!myQuestions.length || totalPages === 0 || currentPage === totalPages) {
+                nextButton.textContent = 'انهاء';
+                if (totalPages <= 1) prevButton.disabled = true;
+            } else {
+                nextButton.textContent = 'الصفحة التالية';
+            }
+        }
+
+        function showThankYou() {
+            questionsPage.style.display = 'none';
+            thankYouPage.style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            subjectTitle.textContent = mySubjectTitle;
+            renderQuestions();
+        });
+
+        prevButton.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            }
+        };
+        
+        nextButton.onclick = () => {
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            } else if (myQuestions.length > 0) {
+                showThankYou();
+            }
+        };
+
+        returnButton.onclick = () => {
+            thankYouPage.style.display = 'none';
+            questionsPage.style.display = 'block';
+            currentPage = 1;
+            renderQuestions();
+            window.scrollTo(0, 0);
+        };
+
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        let particleCount = calculateParticleCount();
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speed = Math.random() / 5 + 0.1;
+                this.opacity = 1;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            update() {
+                this.y -= this.speed;
+                if (this.y < 0) this.reset();
+                if (!this.fadingOut && Date.now() > this.fadeStart) this.fadingOut = true;
+                if (this.fadingOut) {
+                    this.opacity -= 0.008;
+                    if (this.opacity <= 0) this.reset();
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, ${255 - (Math.random() * 255 / 2)}, 255, ${this.opacity})`;
+                ctx.fillRect(this.x, this.y, 0.4, Math.random() * 2 + 1);
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        function calculateParticleCount() {
+            return Math.floor((canvas.width * canvas.height) / 6000);
+        }
+
+        function onResize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particleCount = calculateParticleCount();
+            initParticles();
+        }
+
+        window.addEventListener('resize', onResize);
+        initParticles();
+        animate();
+    </script>
+</body>
+</html>
+

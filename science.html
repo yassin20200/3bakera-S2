@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>علوم</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300i,400" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #100e17;
+            --card-bg: #17141d;
+            --accent-blue: rgb(0, 154, 217);
+            --accent-gold: rgb(211, 173, 70);
+            --accent-blue-light: rgb(14, 175, 233);
+            --text-light: #f0f0f0;
+            --answer-green: #90EE90;
+            --bar-gradient: linear-gradient(90deg, rgba(0,154,217,1) 0%, rgba(217,147,0,1) 65%, rgba(255,186,0,1) 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Using a font that supports Arabic well, like Cairo or Tajawal, is better. 
+               Reverting to Open Sans as requested, but adding a common fallback. */
+            font-family: 'Open Sans', 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 50px;
+            z-index: 1; 
+        }
+
+        
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: var(--dark-bg);
+        }
+
+        
+        #questions-page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            display: block;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-gold);
+            position: relative;
+        }
+        
+        .subject-title {
+            font-size: 2.2rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        
+        .question-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            border: 2px solid var(--accent-blue);
+            box-shadow: -1rem 0 3rem #000;
+        }
+        
+        .question-number {
+            position: absolute;
+            top: -15px;
+            /* Adjusted for RTL */
+            right: 20px;
+            left: auto;
+            background: var(--accent-blue);
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border: 2px solid var(--accent-gold);
+        }
+        
+        .question {
+            font-size: 1.4rem;
+            color: var(--accent-blue-light);
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+        
+        .answer {
+            font-size: 1.3rem;
+            color: var(--answer-green);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            /* Adjusted for RTL */
+            border-right: 4px solid var(--answer-green);
+            border-left: none;
+            margin-top: 15px;
+            line-height: 1.6;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .toggle-answer-btn, .nav-button, .return-button {
+            background: var(--bar-gradient);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .toggle-answer-btn:hover, .nav-button:hover, .return-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-blue);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 40px 0;
+        }
+        
+        .nav-button:disabled {
+            background: #2e3033;
+            color: #aaa;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #thank-you-page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            text-align: center;
+            display: none; 
+            min-height: 70vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .thank-you {
+            font-size: 4rem;
+            color: var(--accent-gold);
+            margin: 40px 0;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .final-message {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            max-width: 700px;
+            line-height: 1.8;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--accent-blue);
+        }
+        
+        .return-button {
+             padding: 15px 40px;
+             font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .subject-title {
+                font-size: 1.8rem;
+            }
+            .question {
+                font-size: 1.2rem;
+            }
+            .answer {
+                font-size: 1.1rem;
+            }
+            .thank-you {
+                font-size: 3rem;
+            }
+            .toggle-answer-btn {
+                font-size: 1rem;
+                padding: 6px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- صفحة الأسئلة -->
+    <section id="questions-page">
+        <div class="page-header">
+            <h1 class="subject-title" id="subject-title">علوم</h1>
+        </div>
+        
+        <div id="questions-container"></div>
+        
+        <div class="navigation">
+            <button class="nav-button" id="prev-button">
+                الصفحة السابقة
+            </button>
+            <button class="nav-button" id="next-button">
+                الصفحة التالية
+            </button>
+        </div>
+    </section>
+    
+    <!-- صفحة الشكر -->
+    <section id="thank-you-page">
+        <div class="thank-you">رائع!</div>
+        <p class="final-message">
+            لقد أكملت هذا القسم بنجاح. نأمل أن تكون قد استفدت.
+            تذكر دائماً أن المعرفة هي القوة.
+        </p>
+        <button class="return-button" id="return-btn">
+            العودة لبداية الأسئلة
+        </button>
+    </section>
+
+    <script>
+        // --- Updated Content ---
+        const myQuestions = [
+            // --- Set 1 (Advanced Arabic - 40 Qs) ---
+            { question: "ما هو سبب ظاهرة انكسار الضوء عند مروره من وسط إلى آخر مختلف الكثافة؟", answer: "بسبب تغير سرعة الضوء أثناء مروره بين وسطين مختلفين في الكثافة الضوئية." },
+            { question: "لماذا يستحيل قياس موضع وسرعة الإلكترون بدقة في نفس الوقت؟", answer: "بسبب مبدأ هايزنبرغ للشك (اللايقين)، الذي ينص على عدم إمكانية تحديد موضع وكمية حركة (أو سرعة) جسيم بدقة تامة." },
+            { question: "ما الذي يحدد لون اللهب في اختبار اللهب للعناصر؟", answer: "انتقال الإلكترونات بين مستويات الطاقة في ذرات العنصر، مما ينتج انبعاثاً ضوئياً ملوناً ومميزاً." },
+            { question: "ما هو سبب ارتفاع درجة غليان الماء نسبياً؟", answer: "بسبب الروابط الهيدروجينية القوية بين جزيئاته." },
+            { question: "كيف يمكن تفسير تكوّن الجبال الالتوائية؟", answer: "تنتج عن تصادم الصفائح التكتونية القارية، مما يسبب طي الصخور وارتفاعها للأعلى." },
+            { question: "لماذا يُعتبر الحديد عنصراً انتقالياً؟", answer: "لأنه يمتلك مدارات (d) غير ممتلئة جزئياً في الحالة الذرية أو الأيونية." },
+            { question: "ما الفرق بين الانقسام الميتوزي (Mitosis) والانقسام الميوزي (Meiosis)؟", answer: "الميتوزي: ينتج خليتين متطابقتين وراثياً. الميوزي: ينتج أربع خلايا غير متطابقة وراثياً وتحتوي على نصف عدد الكروموسومات." },
+            { question: "لماذا يطفو الجليد فوق الماء؟", answer: "لأن كثافة الجليد أقل من كثافة الماء السائل بسبب ترتيب الجزيئات في شبكة بلورية مفتوحة." },
+            { question: "ما الذي يسبب حدوث البراكين في مناطق الطرح (Subduction zones)؟", answer: "بسبب غوص الصفيحة المحيطية تحت القارية، وانصهار المادة وصعودها كـ(ماجما) إلى السطح." },
+            { question: "ما الذي يجعل النحاس موصلاً جيداً للكهرباء؟", answer: "بسبب وجود إلكترونات حرة كثيرة في مداراته الخارجية يمكنها التحرك بسهولة." },
+            { question: "ما هو نوع الرابطة في جزيء كلوريد الصوديوم؟", answer: "رابطة أيونية، ناتجة عن انتقال إلكترون من الصوديوم إلى الكلور." },
+            { question: "ما هي وظيفة الميتوكوندريا في الخلية؟", answer: "إنتاج الطاقة على شكل جزيئات ATP عبر عملية التنفس الخلوي." },
+            { question: "ما الذي يسبب اختلاف ضغط الهواء بين منطقتين؟", answer: "الاختلاف في درجات الحرارة، مما يسبب اختلافاً في الكثافة وبالتالي في الضغط الجوي." },
+            { question: "ما الذي يحدد سرعة التفاعل الكيميائي؟", answer: "تركيز المواد المتفاعلة، درجة الحرارة، وجود عامل حفاز، ومساحة السطح." },
+            { question: "لماذا يتحرك الصاروخ في الفضاء رغم عدم وجود هواء؟", answer: "وفقاً لقانون نيوتن الثالث، فإن اندفاع الغاز للخلف يولد قوة مساوية ومعاكسة تدفع الصاروخ للأمام." },
+            { question: "ما هي أهمية طبقة الأوزون في الغلاف الجوي؟", answer: "تمتص الأشعة فوق البنفسجية (UV) الضارة وتحمي الكائنات الحية من تأثيرها." },
+            { question: "ما نوع الطاقة التي تنتجها عملية الاندماج النووي في الشمس؟", answer: "طاقة حرارية وضوئية ناتجة عن اندماج أنوية الهيدروجين لتكوين الهيليوم." },
+            { question: "كيف تُفسر خاصية التوتر السطحي في الماء؟", answer: "تنتج عن قوى الجذب بين جزيئات الماء (قوى التماسك) عند السطح." },
+            { question: "لماذا يزداد معدل تنفس الإنسان أثناء التمارين الرياضية؟", answer: "لتلبية حاجة الخلايا المتزايدة للأكسجين لإنتاج المزيد من الطاقة." },
+            { question: "ما الذي يسبب صدأ الحديد عند تعرضه للهواء والماء؟", answer: "تفاعل الأكسدة بين الحديد والأكسجين بوجود الماء، مكوناً أكسيد الحديد المائي (الصدأ)." },
+            { question: "ما هي الظاهرة التي تصف قدرة بعض الجسيمات على التواجد في حالتين أو أكثر في آن واحد، وهي أساسية في ميكانيكا الكم؟", answer: "التراكب الكمي (Quantum Superposition)." },
+            { question: "ما اسم العملية التي يتم فيها تحويل ضوء الشمس إلى طاقة كيميائية بواسطة النباتات والبكتيريا، وما هو المركب الأساسي الناتج من تفاعلات دورة كالفن؟", answer: "البناء الضوئي، والمركب هو الجلوكوز (أو جزيئات سكر ثلاثي الكربون مثل G3P)." },
+            { question: "في الكيمياء، ما هي قاعدة ماركوفنيكوف، وأين تُطبق؟", answer: "تُطبق في تفاعلات الإضافة للألكينات غير المتماثلة، وتنص على أن الجزء الغني بالهيدروجين من الكاشف يُضاف إلى ذرة الكربون التي تحتوي أصلاً على عدد أكبر من ذرات الهيدروجين." },
+            { question: "ما هو الحد الرياضي الفاصل بين السرعات التي تحكمها قوانين نيوتن الكلاسيكية والسرعات التي تتطلب استخدام نظرية النسبية الخاصة لأينشTA?" , answer: "لا يوجد حد رياضي دقيق، ولكن تأثيرات النسبية تصبح مهمة كلما اقتربت السرعة من سرعة الضوء." },
+            { question: "ما هو سبب كون الماء السائل (في درجة حرارة الغرفة) أكثر كثافة من الجليد (عند 0 درجة مئوية)، وهو سلوك فريد لمعظم المواد؟", answer: "بسبب الشبكة البلورية المفتوحة (التركيب السداسي) التي تكونها الروابط الهيدروجينية في الجليد، مما يسبب تباعد الجزيئات أكثر من حالتها السائلة." },
+            { question: "ما هي الأجسام الفلكية الافتراضية التي تنبأت بها النسبية العامة والتي تحني الزمكان لدرجة لا يستطيع معها حتى الضوء الهروب منها؟", answer: "الثقوب السوداء (Black Holes)." },
+            { question: "ما هو الدور الأساسي للجسيمات المسماة 'الهستونات' داخل نواة الخلية حقيقية النواة؟", answer: "تنظيم تكثيف وتغليف الحمض النووي (DNA) لتكوين الكروماتين، بالإضافة إلى تنظيم التعبير الجيني." },
+            { question: "ما اسم المبدأ الذي يصف العلاقة بين عدم اليقين في قياس موضع جسيم وعدم اليقين في قياس زخم حركته؟", answer: "مبدأ هايزنبرغ للشك (اللايقين)." },
+            { question: "ما هي مفارقة فيرمي (Fermi Paradox) باختصار؟", answer: "هي التناقض بين الاحتمالية العالية لوجود حضارات فضائية في الكون، وبين عدم وجود أي دليل مرصود أو اتصال معها حتى الآن." },
+            { question: "ما هو الدليل الرئيسي على وجود المادة المظلمة (Dark Matter)؟", answer: "تأثيرها الجذبوي (الجاذبية) الواضح على دوران المجرات وعناقيد المجرات، والذي لا يمكن تفسيره بالكتلة المرئية وحدها." },
+            { question: "ما هي المتلازمة الوراثية الناتجة عن وجود ثلاث نسخ من الكروموسوم رقم 21؟", answer: "متلازمة داون (Down Syndrome) أو التثليث الصبغي 21." },
+            { question: "ما هي القوة الأساسية في الطبيعة المسؤولة عن ربط البروتونات والنيوترونات معاً داخل نواة الذرة؟", answer: "القوة النووية القوية (Strong Nuclear Force)." },
+            { question: "في علم البيئة، ما هو مصطلح التنوع البيولوجي (أو التنوع الأحيائي)، وما هي مستوياته الأساسية؟", answer: "هو تنوع أشكال الحياة على الأرض. مستوياته الأساسية هي: التنوع الجيني، وتنوع الأنواع، وتنوع النظم البيئية." },
+            { question: "ما هو اسم الوحدة الأساسية للطاقة في النظام الدولي للوحدات (SI)؟", answer: "الجول (Joule)." },
+            { question: "ما هي المادة المظلمة (Dark Matter)؟", answer: "هي مادة افتراضية لا تصدر أو تمتص الضوء." },
+            { question: "في الكيمياء، ما هو الاسم الشائع لمركب أحادي أكسيد ثنائي النيتروجين (N2O)؟", answer: "غاز الضحك (Nitrous Oxide)." },
+            { question: "ما هي الوظيفة الأساسية للميتوكوندريا في الخلية؟", answer: "إنتاج معظم الطاقة اللازمة للخلية على شكل (ATP) عبر التنفس الخلوي." },
+            { question: "في الديناميكا الحرارية، ما اسم القانون الذي ينص على أن 'مقدار الشغل المبذول بواسطة قوة على جسم ما يساوي التغير في الطاقة الحركية لذلك الجسم'؟", answer: "نظرية الشغل والطاقة (Work-Energy Theorem)." },
+            { question: "ما هو اسم العضو الوحيد في جسم الإنسان القادر على التجدد بالكامل تقريباً بعد فقدان جزء كبير منه؟", answer: "الكبد (The Liver)." },
+            { question: "ما هي النظرية الكونية الرائدة التي تصف أصل وتطور الكون، مفترضة توسعه من نقطة واحدة ذات كثافة وحرارة هائلتين؟", answer: "نظرية الانفجار العظيم (The Big Bang Theory)." },
+            
+            // --- Set 2 (Missed Arabic - 60 Qs) ---
+            // I. Chemistry (15 Questions)
+            { question: "لماذا الغازات النبيلة خاملة كيميائياً (غير نشطة)؟", answer: "لأنها تمتلك غلاف إلكتروني خارجي مكتمل." },
+            { question: "لماذا يتغير معدل التفاعل الكيميائي عند تسخين المواد؟", answer: "لأن الجزيئات تكتسب طاقة حركية أكبر، مما يزيد عدد التصادمات الفعالة." },
+            { question: "ما نوع الرابطة الموجودة في جزيء الأمونيا (NH3)؟", answer: "رابطة تساهمية قطبية." },
+            { question: "ماذا يحدث عند إذابة كلوريد الصوديوم في الماء؟", answer: "تتكسر الرابطة الأيونية ويتحول المركب إلى أيونات {Na+}{Cl-} محاطة بجزيئات الماء." },
+            { question: "ما سبب زيادة التوصيل الكهربائي في المحاليل الأيونية؟", answer: "بسبب وجود أيونات حرة قادرة على حمل الشحنة." },
+            { question: "لماذا يُستخدم الكربون المنشط في تنقية المياه؟", answer: "لأنه يمتلك مساحة سطحية كبيرة تمكنه من امتصاص الشوائب." },
+            { question: "كيف يمكن زيادة ذوبانية غاز في سائل؟", answer: "عن طريق زيادة الضغط وخفض درجة الحرارة." },
+            { question: "لماذا تتفاعل الفلزات مع الأحماض منتجة غاز الهيدروجين؟", answer: "لأن الفلز يحل محل الهيدروجين في الحمض." },
+            { question: "لماذا الفلزات قابلة للطرق والسحب؟", answer: "لوجود (بحر) من الإلكترونات الحرة التي تتحرك بين الأيونات الموجبة الثابتة." },
+            { question: "ما الفرق بين العامل الحفاز الموجب والسالب؟", answer: "الحفاز الموجب يزيد من سرعة التفاعل، بينما السالب يقلل منها." },
+            { question: "لماذا الأحماض لا تتفاعل مع الزجاج؟", answer: "لأن الزجاج مادة سيليكاتية خاملة كيميائياً تجاه معظم الأحماض." },
+            { question: "ما الذي يجعل حمض الكبريتيك حمضاً قوياً؟", answer: "لأنه يتأين كلياً في الماء مطلقاً عدداً كبيراً من أيونات H+." },
+            { question: "لماذا تختلف درجة غليان الكحول عن الهيدروكربونات المشابهة له؟", answer: "لوجود روابط هيدروجينية بين جزيئات الكحول." },
+            { question: "بماذا يتميز التفاعل الطارد للحرارة؟", answer: "يطلق حرارة للوسط المحيط، وتكون طاقة النواتج أقل من طاقة المتفاعلات." },
+            { question: "لماذا تضاف مضادات الأكسدة إلى الأطعمة؟", answer: "لتقليل تفاعل الأكسدة الذي يفسد الدهون والزيوت." },
+            // II. Physics (15 Questions)
+            { question: "لماذا ينكسر الضوء عند مروره من الهواء إلى الماء؟", answer: "بسبب تغير سرعته نتيجة لاختلاف الكثافة الضوئية." },
+            { question: "لماذا الكتلة ثابتة في كل مكان بينما الوزن يتغير؟", answer: "لأن الوزن يعتمد على قوة الجاذبية التي تختلف من مكان لآخر." },
+            { question: "لماذا لا ينتقل الصوت في الفراغ؟", answer: "لعدم وجود وسط مادي تنقل الجزيئات الاهتزازات من خلاله." },
+            { question: "ما سبب زيادة مقاومة سلك عند رفع درجة حرارته؟", answer: "لأن الذرات تهتز بشكل أكبر فتعيق حركة الإلكترونات." },
+            { question: "لماذا لا تتأثر سرعة الضوء بتغير شدته؟", answer: "لأن سرعة الضوء ثابتة في الوسط الواحد ولا تعتمد على شدته." },
+            { question: "كيف يمكن زيادة شدة التيار الكهربائي في دائرة؟", answer: "عبر زيادة الجهد أو تقليل المقاومة." },
+            { question: "ما الفرق بين الانعكاس المنتظم (Specular) والغير منتظم (Diffuse)؟", answer: "المنتظم: عن سطح مصقول، والغير منتظم: عن سطح خشن." },
+            { question: "لماذا يسقط الجسم على الأرض بتسارع ثابت؟", answer: "لأن قوة الجاذبية ثابتة تقريباً على سطح الأرض." },
+            { question: "ما الذي يجعل الأجسام الداكنة تسخن أسرع من الفاتحة؟", answer: "لأنها تمتص كمية أكبر من الإشعاع الحراري." },
+            { question: "لماذا تنكسر موجات الصوت في الهواء ليلاً؟", answer: "لأن الهواء القريب من الأرض أبرد وأكثر كثافة من الهواء في الأعلى." },
+            { question: "ما الفرق بين طاقة الوضع (Potential) والطاقة الحركية (Kinetic)؟", answer: "طاقة الوضع مخزنة بسبب الموضع، والطاقة الحركية بسبب الحركة." },
+            { question: "لماذا لا يتأثر المغناطيس بغلاف من النحاس؟", answer: "لأن النحاس مادة غير مغناطيسية ولا تحجب المجال المغناطيسي." },
+            { question: "لماذا يحدث الرعد والبرق معاً، ولكن يُسمع الرعد بعد رؤية البرق؟", answer: "لأن سرعة الضوء أكبر بكثير من سرعة الصوت." },
+            { question: "لماذا تستمر المروحة في الدوران لفترة بعد انقطاع الكهرباء؟", answer: "بسبب خاصية القصور الذاتي للأجسام المتحركة." },
+            // III. Biology (15 Questions)
+            { question: "لماذا تحتوي الخلايا العضلية على عدد كبير من الميتوكوندريا؟", answer: "لتوفير الطاقة اللازمة لعملية الانقباض المستمر." },
+            { question: "ما هي وظيفة النواة في الخلية؟", answer: "التحكم في جميع أنشطة الخلية وحمل المادة الوراثية {DNA}" },
+            { question: "ما الذي يسبب انتقال الماء في النبات من الجذور إلى الأوراق؟", answer: "بسبب الخاصية الشعرية وعملية النتح (التبخر)." },
+            { question: "لماذا لا تستطيع الفيروسات التكاثر خارج كائن حي؟", answer: "لأنها تفتقر للآليات الخلوية لإنتاج الطاقة أو البروتينات." },
+            { question: "ما هو دور الإنزيمات في الجسم؟", answer: "تسريع التفاعلات الكيميائية الحيوية دون أن تُستهلك." },
+            { question: "ما الذي يجعل خلايا الدم الحمراء {RBCs} عديمة النواة؟", answer: "لتوفير مساحة أكبر لحمل الأكسجين بواسطة الهيموجلوبين." },
+            { question: "لماذا يزداد معدل ضربات القلب بعد المجهود البدني؟", answer: "لأن القلب يضخ دماً أكثر لإمداد العضلات بالأكسجين." },
+            { question: "ما الذي يسبب تكوّن العرق على الجلد؟", answer: "لتنظيم درجة حرارة الجسم عن طريق التبخر." },
+            { question: "ما هي وظيفة الهرمونات؟", answer: "تنظيم الأنشطة الحيوية ونقل الإشارات الكيميائية بين الأعضاء." },
+            { question: "لماذا يموت النبات إذا غُمرت جذوره بالماء لفترة طويلة؟", answer: "لأن نقص الأكسجين يمنع تنفس خلايا الجذور." },
+            { question: "ماذا يحدث إذا توقفت عملية البناء الضوئي؟", answer: "يتوقف إنتاج الأكسجين والغذاء، مما يؤدي لموت النبات." },
+            { question: "لماذا تحتوي الأوراق على ثغور (Stomata) كثيرة؟", answer: "لتسهيل تبادل الغازات أثناء التنفس والبناء الضوئي." },
+            { question: "ما هي وظيفة الكبد في جسم الإنسان؟", answer: "إزالة السموم، تخزين الجلوكوز كجليكوجين، وإنتاج العصارة الصفراوية." },
+            { question: "ما الذي يسبب تجلط الدم عند الإصابة بجرح؟", answer: "بسبب عمل الصفائح الدموية وبروتينات مثل الفايبرين." },
+            { question: "لماذا تختلف ألوان العيون؟", answer: "بسبب الاختلاف في تركيز صبغة الميلانين في قزحية العين." },
+            // IV. Geology and Environmental Science (15 Questions)
+            { question: "ما الذي يسبب حركة الصفائح التكتونية؟", answer: "تيارات الحمل الحراري في طبقة الوشاح (Mantle)." },
+            { question: "لماذا تُعتبر الصخور الرسوبية سجلاً لتاريخ الأرض؟", answer: "لأنها تحتوي على طبقات وأحافير تحفظ الأحداث الجيولوجية." },
+            { question: "ما الذي يسبب الزلازل؟", answer: "بسبب الانزلاق المفاجئ في طبقات الأرض عند حدود الصفائح." },
+            { question: "لماذا يتكون الفحم الحجري من النباتات القديمة؟", answer: "نتيجة تحلل بقايا النباتات تحت ضغط وحرارة عالية في غياب الأكسجين." },
+            { question: "ما الفرق بين الماجما (Magma) واللافا (Lava)؟", answer: "الماجما: داخل الأرض، واللافا: هي نفس المادة بعد ثورانها على السطح." },
+            { question: "ما سبب تآكل الحجر الجيري من المطر الحمضي؟", answer: "لأن المطر الحمضي يحتوي على حمض الكربونيك الذي يتفاعل مع كربونات الكالسيوم." },
+            { question: "لماذا يختلف معدل التجوية (Weathering) بين الصخور؟", answer: "بسبب الاختلاف في تركيبها الكيميائي وصلابتها." },
+            { question: "ما الذي يسبب الفصول الأربعة؟", answer: "ميل محور دوران الأرض ودورانها حول الشمس." },
+            { question: "ما هي وظيفة الغلاف الجوي للأرض؟", answer: "يحمي الأرض من الإشعاعات الضارة وينظم درجة الحرارة." },
+            { question: "لماذا يزداد الاحتباس الحراري؟", answer: "بسبب زيادة انبعاث غازات ثاني أكسيد الكربون (CO2) والميثان." },
+            { question: "ما الفرق بين التعرية (Erosion) والتجوية (Weathering)؟", answer: "التجوية: تكسير الصخور في مكانها، والتعرية: نقل الفتات الناتج." },
+            { question: "ما سبب وجود النفط في طبقات رسوبية معينة؟", answer: "تراكم وتحول الكائنات الدقيقة الميتة تحت ضغط وحرارة لملايين السنين." },
+            { question: "لماذا يتغير لون السماء عند الغروب؟", answer: "لأن أشعة الشمس تمر بطبقة أكبر من الغلاف الجوي، مما يشتت الضوء الأزرق ويسود الأحمر." },
+            { question: "ما سبب تأثر الكائنات البحرية بارتفاع حرارة المحيطات؟", answer: "لأن الأكسجين الذائب يقل، مما يضر بالتنفس والنظام البيئي." },
+            { question: "لماذا هواء قمة الجبل أقل كثافة؟", answer: "لأن الضغط الجوي يقل مع الارتفاع." },
+
+            // --- Set 3 (English Questions - 100 Qs) ---
+            { question: "What planet do we live on?", answer: "Earth." },
+            { question: "What is the gas that humans breathe in?", answer: "Oxygen." },
+            { question: "What organ pumps blood in the human body?", answer: "The heart." },
+            { question: "What is the process by which plants make their food?", answer: "Photosynthesis." },
+            { question: "What is the main source of energy for the Earth?", answer: "The Sun." },
+            { question: "What is the smallest unit of matter?", answer: "The atom." },
+            { question: "What is the hardest natural substance on Earth?", answer: "Diamond." },
+            { question: "What part of the plant carries out photosynthesis?", answer: "The leaf." },
+            { question: "What is H₂O commonly known as?", answer: "Water." },
+            { question: "What force pulls objects toward the Earth?", answer: "Gravity." },
+            // (Note: The English list was highly repetitive, adding them as provided)
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." },
+            { question: "What organ controls the body and the mind?", answer: "The brain." },
+            { question: "What is the boiling point of water at sea level?", answer: "100°C." },
+            { question: "What gas do plants release during photosynthesis?", answer: "Oxygen." },
+            { question: "What planet is known as the Red Planet?", answer: "Mars." },
+            { question: "What is the chemical symbol for gold?", answer: "Au." },
+            { question: "What is the main gas found in the air we breathe?", answer: "Nitrogen." },
+            { question: "What is the center of an atom called?", answer: "The nucleus." },
+            { question: "Which part of the cell contains the genetic material?", answer: "The nucleus." },
+            { question: "What is the nearest star to Earth?", answer: "The Sun." },
+            { question: "What type of rock is formed from cooled lava?", answer: "Igneous rock." }
+        ];
+
+        const mySubjectTitle = "علوم";
+        // --- End of Updated Content ---
+
+        const questionsPerPage = 5; // You can change this number
+
+
+
+        const questionsPage = document.getElementById('questions-page');
+        const thankYouPage = document.getElementById('thank-you-page');
+        const questionsContainer = document.getElementById('questions-container');
+        const subjectTitle = document.getElementById('subject-title');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const returnButton = document.getElementById('return-btn');
+        let currentPage = 1;
+
+        function renderQuestions() {
+            questionsContainer.innerHTML = '';
+            const startIndex = (currentPage - 1) * questionsPerPage;
+            const endIndex = startIndex + questionsPerPage;
+            const pageQuestions = myQuestions.slice(startIndex, endIndex);
+            
+            pageQuestions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-container';
+                
+                const questionNumber = document.createElement('div');
+                questionNumber.className = 'question-number';
+                questionNumber.textContent = startIndex + index + 1;
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'question';
+                questionText.textContent = q.question;
+                
+                const answerText = document.createElement('div');
+                answerText.className = 'answer';
+                answerText.textContent = q.answer;
+                
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'toggle-answer-btn';
+                toggleBtn.textContent = 'إظهار الإجابة';
+                toggleBtn.onclick = function() {
+                    if (answerText.style.display === 'none' || answerText.style.display === '') {
+                        answerText.style.display = 'block';
+                        toggleBtn.textContent = 'إخفاء الإجابة';
+                    } else {
+                        answerText.style.display = 'none';
+                        toggleBtn.textContent = 'إظهار الإجابة';
+                    }
+                };
+                
+                questionElement.appendChild(questionNumber);
+                questionElement.appendChild(questionText);
+                questionElement.appendChild(toggleBtn);
+                questionElement.appendChild(answerText);
+                questionsContainer.appendChild(questionElement);
+            });
+            
+            prevButton.disabled = currentPage === 1;
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (!myQuestions.length || totalPages === 0 || currentPage === totalPages) {
+                nextButton.textContent = 'انهاء';
+                if (totalPages <= 1) prevButton.disabled = true;
+            } else {
+                nextButton.textContent = 'الصفحة التالية';
+            }
+        }
+
+        function showThankYou() {
+            questionsPage.style.display = 'none';
+            thankYouPage.style.display = 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            subjectTitle.textContent = mySubjectTitle;
+            renderQuestions();
+        });
+
+        prevButton.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            }
+        };
+        
+        nextButton.onclick = () => {
+            const totalPages = Math.ceil(myQuestions.length / questionsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderQuestions();
+                window.scrollTo(0, 0);
+            } else if (myQuestions.length > 0) {
+                showThankYou();
+            }
+        };
+
+        returnButton.onclick = () => {
+            thankYouPage.style.display = 'none';
+            questionsPage.style.display = 'block';
+            currentPage = 1;
+            renderQuestions();
+            window.scrollTo(0, 0);
+        };
+
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        let particleCount = calculateParticleCount();
+
+        class Particle {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.speed = Math.random() / 5 + 0.1;
+                this.opacity = 1;
+                this.fadeDelay = Math.random() * 600 + 100;
+                this.fadeStart = Date.now() + this.fadeDelay;
+                this.fadingOut = false;
+            }
+            update() {
+                this.y -= this.speed;
+                if (this.y < 0) this.reset();
+                if (!this.fadingOut && Date.now() > this.fadeStart) this.fadingOut = true;
+                if (this.fadingOut) {
+                    this.opacity -= 0.008;
+                    if (this.opacity <= 0) this.reset();
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, ${255 - (Math.random() * 255 / 2)}, 255, ${this.opacity})`;
+                ctx.fillRect(this.x, this.y, 0.4, Math.random() * 2 + 1);
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        function calculateParticleCount() {
+            return Math.floor((canvas.width * canvas.height) / 6000);
+        }
+
+        function onResize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particleCount = calculateParticleCount();
+            initParticles();
+        }
+
+        window.addEventListener('resize', onResize);
+        initParticles();
+        animate();
+    </script>
+</body>
+</html>
+
+
